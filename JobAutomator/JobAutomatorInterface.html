@@ -1,0 +1,525 @@
+<html>
+<head>
+<title>
+Job Automator
+</title>
+<style>
+td
+	{
+	padding: .25em;
+	}
+
+thead
+	{
+	font-weight: bold;
+	}
+
+/*select, input[type="txt"]
+	{
+	position: relative;
+	left: 150px;
+	}*/
+	
+#jobAdded
+	{
+	display: none;
+	}
+
+#idError
+	{
+	display: none;
+	}
+
+#searchBy
+	{
+	position: static;
+	}
+</style>
+
+
+<script type="text/javascript" src="References/jquery.js"></script>
+<script type="text/javascript" src="https://cdn.socket.io/socket.io-1.3.7.js"></script>
+<script language="javascript" type="text/javascript">
+
+$(document).ready(function()
+	{
+	var socket = io();
+
+	
+	
+	socket.on('newResult',function(msg)
+		{
+		$('table').append(msg);
+		$('.delete').off("click");
+		$('.delete').click(function()
+			{
+        	//console.log('inside listener');
+			$(this).parent().remove();
+			socket.emit('deleteJob',$(this).attr('id'));
+			return false;
+			});
+		});
+		
+	socket.on('idError',function()
+		{
+		$('#idError').show(100);
+		setTimeout(function()
+			{
+			$('#idError').hide(100);
+			},3000);
+		});
+
+	$('#addForm').submit(function()
+		{
+		var newJob = {};
+		newJob.Name = $('#selectName').val();
+			newJob.Command = $('#selectCommand').val();
+		if($('#selectTimeDependency').val() == 'byTime')
+			{
+			newJob.byDep = 0;
+			newJob.Year = $('#selectYear').val();
+			newJob.Month = $('#selectMonth').val();
+			if($('#selectDateOrDayOfWeek').val() == 'Date')
+				{
+				newJob.Day = $('#selectDate').val();
+				}
+			else
+				{
+				newJob.Day =  $('#selectDayOfWeek').val();
+				}
+			newJob.Hour = $('#selectHour').val();
+			newJob.Minute = $('#selectMinute').val();
+			}
+		else
+			{
+			newJob.byDep = 1;
+			newJob.Dependency = $('#selectDependency').val();
+			}
+		socket.emit('addClick',newJob);
+		$('#jobAdded').show(100);
+		setTimeout(function()
+			{
+			$('#jobAdded').hide(100);
+			},3000);
+		return false;
+		});
+
+	$('#searchCommandForm').submit(function()
+                {
+                $('tr').not('thead tr').remove();
+		socket.emit('searchClick',{'key':'Command','value':$('#searchCommand').val()});
+		return false;
+		});
+
+	$('#searchNameForm').submit(function()
+                {
+				$('tr').not('thead tr').remove();
+                socket.emit('searchClick',{'key':'Name','value':$('#searchName').val()});
+                return false;
+                });
+    
+    $('#searchIDForm').submit(function()
+                {
+				$('tr').not('thead tr').remove();
+                socket.emit('searchClick',{'key':'_id','value':$('#searchID').val()});
+                return false;
+                });
+
+	$('#selectYear').append("<option value=\"" + new Date().getFullYear() + "\">-</option>");
+	$('#selectYear').append("<option value=\"-1\">All</option>");
+	for(x=new Date().getFullYear(); x < 2115; x++)
+		{
+		$('#selectYear').append("<option value=\"" + x + "\">" + x + "</option>");
+		}
+
+
+	$('#selectDateOrDayOfWeek').change(function()
+		{
+		if($('#selectDateOrDayOfWeek').val() == "Date")
+			{
+			$('#selectDate').css('display','inline');
+			$('#selectDayOfWeek').css('display','none');
+			}
+		else
+			{
+			$('#selectDate').css('display','none');
+			$('#selectDayOfWeek').css('display','inline');
+			}
+		});
+		
+	if($('#selectDateOrDayOfWeek').val() == "Date")
+		{
+		$('#selectDate').css('display','inline');
+		$('#selectDayOfWeek').css('display','none');
+		}
+	else
+		{
+		$('#selectDate').css('display','none');
+		$('#selectDayOfWeek').css('display','inline');
+		}
+		
+	$('#selectTimeDependency').change(function()
+		{
+		if($('#selectTimeDependency').val() == "byTime")
+			{
+			$('#byTime').css('display','inline');
+			$('#byDependency').css('display','none');
+			}
+		else
+			{
+			$('#byTime').css('display','none');
+			$('#byDependency').css('display','inline');
+			}
+		});
+		
+	if($('#selectTimeDependency').val() == "byTime")
+		{
+		$('#byTime').css('display','inline');
+		$('#byDependency').css('display','none');
+		}
+	else
+		{
+		$('#byTime').css('display','none');
+		$('#byDependency').css('display','inline');
+		}
+	
+		
+	$('#searchBy').change(function()
+		{
+		if($('#searchBy').val() == "Name")
+			{
+			$('#searchNameForm').css('display','inline');
+			$('#searchCommandForm').css('display','none');
+			$('#searchIDForm').css('display','none');
+			}
+		else if($('#searchBy').val() == "Command")
+			{
+			$('#searchNameForm').css('display','none');
+			$('#searchCommandForm').css('display','inline');
+			$('#searchIDForm').css('display','none');
+			}
+		else
+			{
+			$('#searchNameForm').css('display','none');
+			$('#searchCommandForm').css('display','none');
+			$('#searchIDForm').css('display','inline');
+			}
+		});
+		
+	if($('#searchBy').val() == "Name")
+		{
+		$('#searchNameForm').css('display','inline');
+		$('#searchCommandForm').css('display','none');
+		$('#searchIDForm').css('display','none');
+		}
+	else if($('#searchBy').val() == "Command")
+		{
+		$('#searchNameForm').css('display','none');
+		$('#searchCommandForm').css('display','inline');
+		$('#searchIDForm').css('display','none');
+		}
+	else
+		{
+		$('#searchNameForm').css('display','none');
+		$('#searchCommandForm').css('display','none');
+		$('#searchIDForm').css('display','inline');
+		}
+	
+	});
+
+
+</script>
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+<h1>Job Automator</h1>
+<h2>Add Job:</h2>
+
+<form id="addForm">
+
+<p>
+Name: 
+<input type="txt" name="selectName" id="selectName">
+</p>
+
+<p>
+Command: 
+<input type="txt" name="selectCommand" id="selectCommand">
+</p>
+
+<p>
+Decide execution:
+<select id="selectTimeDependency" name="selectTimeDependency">
+	<option value="byTime">By Time</option>
+	<option value="byDependency">By Dependency</option>
+</select>
+</p>
+
+<div id="byDependency">
+<p>
+Dependency ID:
+<input type="txt" name="selectDependency" id="selectDependency">
+</p>
+</div>
+
+<div id="byTime">
+<p>
+Year:
+<select id="selectYear" name="selectYear">
+	
+</select>
+</p>
+
+<p>
+Month: 
+<select id="selectMonth" name="selectMonth">
+	<option value="1">-</option>
+	<option value="-1">All</option>
+	<option value="1">January</option>
+	<option value="2">February</option>
+  	<option value="3">March</option>
+  	<option value="4">April</option>
+  	<option value="5">May</option>
+  	<option value="6">June</option>
+  	<option value="7">July</option>
+  	<option value="8">August</option>
+  	<option value="9">September</option>
+  	<option value="10">October</option>
+  	<option value="11">November</option>
+  	<option value="12">December</option>
+</select>
+</p>
+
+<p>
+Day:  
+<select id="selectDateOrDayOfWeek" name="selectDateOrDayOfWeek">
+	<option value="Date">Date</option>
+	<option value="Day of Week">Day of Week</option>
+</select>
+<select id="selectDate" name="selectDate">
+	<option value="1">-</option>
+	<option value="-1">All</option>
+	<option value="1">1</option>
+	<option value="2">2</option>
+  	<option value="3">3</option>
+  	<option value="4">4</option>
+  	<option value="5">5</option>
+  	<option value="6">6</option>
+  	<option value="7">7</option>
+  	<option value="8">8</option>
+  	<option value="9">9</option>
+  	<option value="10">10</option>
+  	<option value="11">11</option>
+  	<option value="12">12</option>
+	<option value="13">13</option>
+	<option value="14">14</option>
+  	<option value="15">15</option>
+  	<option value="16">16</option>
+  	<option value="17">17</option>
+  	<option value="18">18</option>
+  	<option value="19">19</option>
+  	<option value="20">20</option>
+  	<option value="21">21</option>
+  	<option value="22">22</option>
+  	<option value="23">23</option>
+	<option value="24">24</option>
+	<option value="25">25</option>
+	<option value="26">26</option>
+  	<option value="27">27</option>
+  	<option value="28">28</option>
+  	<option value="29">29</option>
+  	<option value="30">30</option>
+  	<option value="31">31</option>
+</select>
+<select id="selectDayOfWeek" name="selectDayOfWeek">
+	<option value="40">-</option>
+	<option value="-1">All</option>
+	<option value="40">Monday</option>
+	<option value="41">Tuesday</option>
+	<option value="42">Wednesday</option>
+	<option value="43">Thursday</option>
+	<option value="44">Friday</option>
+	<option value="45">Saturday</option>
+	<option value="46">Sunday</option>
+
+</select>
+
+(Please select a valid date)
+
+</p>
+
+<p>
+Hour: 
+<select id="selectHour" name="selectHour">
+	<option value="0">-</option>
+	<option value="-1">All</option>
+	<option value="0">0</option>
+	<option value="1">1</option>
+	<option value="2">2</option>
+  	<option value="3">3</option>
+  	<option value="4">4</option>
+  	<option value="5">5</option>
+  	<option value="6">6</option>
+  	<option value="7">7</option>
+  	<option value="8">8</option>
+  	<option value="9">9</option>
+  	<option value="10">10</option>
+  	<option value="11">11</option>
+  	<option value="12">12</option>
+	<option value="13">13</option>
+	<option value="14">14</option>
+  	<option value="15">15</option>
+  	<option value="16">16</option>
+  	<option value="17">17<option>
+  	<option value="18">18</option>
+  	<option value="19">19</option>
+  	<option value="20">20</option>
+  	<option value="21">21</option>
+  	<option value="22">22</option>
+  	<option value="23">23</option>
+</select>
+</p>
+
+<p>
+Minute: 
+<select id="selectMinute" name="selectMinute">
+	<option value="0">-</option>
+	<option value="-1">All</option>
+	<option value="0">0</option>
+	<option value="1">1</option>
+	<option value="2">2</option>
+  	<option value="3">3</option>
+  	<option value="4">4</option>
+  	<option value="5">5</option>
+  	<option value="6">6</option>
+  	<option value="7">7</option>
+  	<option value="8">8</option>
+  	<option value="9">9</option>
+  	<option value="10">10</option>
+  	<option value="11">11</option>
+  	<option value="12">12</option>
+	<option value="13">13</option>
+	<option value="14">14</option>
+  	<option value="15">15</option>
+  	<option value="16">16</option>
+  	<option value="17">17</option>
+  	<option value="18">18</option>
+  	<option value="19">19</option>
+  	<option value="20">20</option>
+  	<option value="21">21</option>
+  	<option value="22">22</option>
+  	<option value="23">23</option>
+	<option value="24">24</option>
+	<option value="25">25</option>
+	<option value="26">26</option>
+  	<option value="27">27</option>
+  	<option value="28">28</option>
+  	<option value="29">29</option>
+  	<option value="30">30</option>
+  	<option value="31">31</option>
+  	<option value="32">32</option>
+  	<option value="33">33</option>
+  	<option value="34">34</option>
+  	<option value="35">35</option>
+  	<option value="36">36</option>
+	<option value="37">37</option>
+	<option value="38">38</option>
+  	<option value="39">39</option>
+  	<option value="40">40</option>
+  	<option value="41">41</option>
+  	<option value="42">42</option>
+  	<option value="43">43</option>
+  	<option value="44">44</option>
+  	<option value="45">45</option>
+  	<option value="46">46</option>
+  	<option value="47">47</option>
+  	<option value="48">48</option>
+  	<option value="49">49</option>
+  	<option value="50">50</option>
+	<option value="51">51</option>
+	<option value="52">52</option>
+  	<option value="53">53</option>
+  	<option value="54">54</option>
+  	<option value="55">55</option>
+  	<option value="56">56</option>
+  	<option value="57">57</option>
+  	<option value="58">58</option>
+  	<option value="59">59</option>
+</select>
+</p>
+</div>
+
+<input id="submitAdd" type="submit" value="Add Job">
+
+</form>
+<p id="jobAdded">Job Added</p>
+
+
+
+<p>
+<h2>Search Jobs:</h2>
+<h3>Search:</h3>
+</p>
+
+<p>
+<select id="searchBy" name="searchBy">
+	<option value="Command">Command</option>
+	<option value="Name">Name</option>
+	<option value="ID">ID</option>
+</select>
+</p>
+
+<form id="searchCommandForm">
+<p>
+Search Command: 
+<input type="txt" name="searchCommand" id="searchCommand">
+</p>
+<input id="submitCommandSearch" type="submit" value="Search by Command">
+
+</form>
+
+<form id="searchNameForm">
+<p>
+Search Name: 
+<input type="txt" name="searchName" id="searchName">
+</p>
+<input id="submitNameSearch" type="submit" value="Search by Name">
+</form>
+
+<form id="searchIDForm">
+<p>
+Search ID: 
+<input type="txt" name="searchID" id="searchID">
+</p>
+<input id="submitIDSearch" type="submit" value="Search by ID">
+<p id="idError">
+Invalid ID
+</p>
+</form>
+
+<h3>Results:</h3>
+<table border="1">
+<b>
+<thead>
+<tr>
+<td>Name</td>
+<td>Command</td>
+<td>Time</td>
+<td>ID</td>
+<td>Result of Last Run</td>
+<td>Delete?</td>
+<tr>
+</thead>
+</b>
+</table>
+
+</body>
+</html>
